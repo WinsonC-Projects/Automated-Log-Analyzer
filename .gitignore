@@ -284,11 +284,15 @@ Desktop.ini
 
 
 # ------------------------------------------------------------
-# VS Code Temporary / Local Files
+# VS Code Local Settings
 # ------------------------------------------------------------
 
-# Keep normal VS Code project files available if needed.
-# Ignore only common local history/temp directories.
+# Ignore machine-specific VS Code settings.
+# This prevents the local Python interpreter path from being
+# committed to GitHub.
+.vscode/
+
+# Ignore local VS Code history and workspace files.
 .history/
 *.code-workspace
 
@@ -331,3 +335,12 @@ Desktop.ini
 #
 # docs/ is intentionally NOT ignored because it contains the
 # methodology, experiment documentation, and findings.
+#
+# src/ is intentionally NOT ignored because it contains the
+# Python source code used for deterministic and LLM-assisted analysis.
+#
+# tests/ is intentionally NOT ignored because it will contain
+# reproducibility and validation tests for the project.
+#
+# .vscode/ is intentionally ignored because it may contain
+# machine-specific configuration such as the local Python path.
