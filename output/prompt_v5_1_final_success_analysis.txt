@@ -1,0 +1,129 @@
+﻿
+Analyzing file: data\processed\success_authentication_sample.csv
+
+===== PYTHON VERIFIED EVIDENCE V5.1 =====
+
+{
+  "total_csv_records": 50,
+  "ordinary_authentication_records": 50,
+  "compressed_repeat_records": 0,
+  "ordinary_events_represented": 50,
+  "repeated_events_represented": 0,
+  "total_authentication_events_represented": 50,
+  "failed_csv_records": 0,
+  "successful_csv_records": 50,
+  "failed_authentication_events_represented": 0,
+  "successful_authentication_events_represented": 50,
+  "unique_source_ip_count": 14,
+  "source_ip_addresses": [
+    "119.137.62.142",
+    "113.118.187.34",
+    "183.62.156.108",
+    "137.189.241.19",
+    "119.137.60.156",
+    "222.125.40.98",
+    "137.189.90.232",
+    "218.17.80.182",
+    "137.189.88.215",
+    "14.17.22.31",
+    "218.18.43.243",
+    "119.137.63.195",
+    "67.160.100.130",
+    "137.189.241.248"
+  ],
+  "unique_username_count": 5,
+  "usernames": [
+    "fztu",
+    "jmzhu",
+    "curi",
+    "zachary",
+    "suyuxin"
+  ],
+  "authentication_methods": [
+    "password"
+  ],
+  "first_record": "Dec 10 09:32:20",
+  "last_record": "Dec 18 20:54:11",
+  "observed_time_span": "8 days, 11 hours, 21 minutes, 51 seconds",
+  "counting_method": "Normal log records count as one authentication event. Records containing 'message repeated N times' count as N authentication events based on the repeat value recorded by syslog.",
+  "evidence_limitations": [
+    "Authentication event counts are derived from the information represented in the supplied OpenSSH logs.",
+    "Successful authentication does not by itself establish that the activity was authorized or legitimate.",
+    "The logs do not by themselves establish the identity or intent of a source.",
+    "Conclusions apply only to the records supplied to this analysis."
+  ]
+}
+
+Sending Python-verified evidence to Llama 3.2...
+
+===== LLM SOC ANALYSIS V5.1 =====
+
+**AUTHENTICATION SUMMARY**
+
+The verified evidence shows:
+
+- 50 CSV records, 50 ordinary authentication records, and 0 compressed repeat records.
+- 50 successful CSV records and 0 failed CSV records.
+- 50 successful authentication events and 0 failed authentication events.
+- 14 unique source IPs, with no failed authentication events from these IPs.
+- 5 unique usernames, with no failed authentication events from these usernames.
+- Only password authentication method was used.
+
+**TIMELINE**
+
+The evidence provides a time span of 8 days, 11 hours, 21 minutes, and 51 seconds, from Dec 10 09:32:20 to Dec 18 20:54:11.
+
+**OBSERVED INDICATORS**
+
+Verified indicators include:
+
+- 14 source IPs.
+- 5 usernames.
+- Password authentication method.
+- No failed authentication events from any source IP or username.
+- No failed CSV records.
+- No compressed repeat records.
+- Successful authentication events from CSV records.
+
+**SECURITY INTERPRETATION**
+
+While the analysis provides a clear picture of authentication events, it does not establish that the activity was authorized or legitimate. The absence of failed authentication events does not necessarily mean brute-force activity was not detected outside the sample.
+
+**RISK LEVEL**
+
+MEDIUM
+
+**RECOMMENDED SOC ACTIONS**
+
+- Monitor the security products for potential brute-force activity.
+- Review the source IPs and usernames for potential suspicious activity.
+- Keep a close eye on the system for potential unauthorized access attempts.
+- Verify that the password authentication method was not used for unauthorized access.
+
+===== LLM OUTPUT VALIDATION V5.1 =====
+
+[PASS] Source IP count
+  Python verified: 14
+  LLM claimed: 14
+
+[PASS] Username count
+  Python verified: 5
+  LLM claimed: 5
+
+[NOT CHECKED] Total authentication events
+  Python verified: 50
+  LLM claim: No reliably extractable numerical claim
+
+[PASS] Successful authentication events
+  Python verified: 50
+  LLM claimed: 50
+
+[PASS] Failed authentication events
+  Python verified: 0
+  LLM claimed: 0
+
+Numerical claims checked: 4
+Numerical inconsistencies detected: 0
+
+No numerical inconsistencies were detected among the claims that could be checked automatically.
+This does not prove that every narrative statement made by the LLM is correct.
