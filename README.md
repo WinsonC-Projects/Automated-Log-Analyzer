@@ -1,151 +1,204 @@
-# Automated Log Analyzer
+# Automated OpenSSH Log Analyzer
 
-A Python-based tool for analyzing authorized system logs and identifying unusual or suspicious activity.
+## Overview
 
-## Project Description
+The Automated OpenSSH Log Analyzer is a cybersecurity project that analyzes OpenSSH authentication logs and generates evidence-based explanations that may assist Security Operations Center (SOC) analysts.
 
-This graduate research project will develop a basic automated log analyzer. The analyzer will read a selected dataset from LogHub, organize log events, and identify unusual patterns using documented detection rules.
+The project combines **KNIME Analytics Platform**, **Python**, and a locally hosted **Llama 3.2 Large Language Model (LLM)** through **Ollama**.
 
-The project combines cybersecurity, digital forensics, Python programming, and data analysis.
+KNIME is used to filter and structure authentication logs, Python performs deterministic analysis and verifies factual evidence, and Llama 3.2 converts the verified evidence into a concise SOC-style explanation.
 
-## Research Questions
+A major focus of this project is evaluating the reliability of LLMs for cybersecurity log analysis and determining how deterministic processing can reduce unsupported or hallucinated information.
 
-1. How effectively can a Python-based automated log analyzer parse and organize events from a selected LogHub system-log dataset?
+## Project Objectives
 
-2. How accurately can the analyzer identify unusual log-event patterns using documented detection rules?
+- Extract successful and failed OpenSSH authentication activity.
+- Structure raw authentication logs using KNIME.
+- Analyze authentication patterns using Python.
+- Create timelines and calculate authentication activity from log evidence.
+- Use a local LLM to generate SOC-readable explanations.
+- Evaluate hallucinations and limitations in LLM-generated security analysis.
+- Improve LLM reliability by providing Python-verified evidence.
 
-## Project Goals
+## Architecture
 
-The goals of this project are to:
+```text
+OpenSSH Loghub Dataset
+        |
+        v
+KNIME Analytics Platform
+        |
+        |-- Filter authentication records
+        |-- Extract structured fields
+        |-- Group activity by source IP
+        |
+        v
+Structured CSV Data
+        |
+        v
+Python
+        |
+        |-- Calculate verified statistics
+        |-- Build authentication timelines
+        |-- Process syslog repeated messages
+        |
+        v
+Verified Evidence
+        |
+        v
+Ollama + Llama 3.2
+        |
+        v
+SOC-Style Explanation
+```
 
-- Research cybersecurity log management and automated log analysis.
-- Select and document one LogHub dataset.
-- Build a Python program that reads and processes log files.
-- Extract useful information from each log event.
-- Identify unusual or suspicious patterns.
-- Generate a clear analysis report.
-- Test the analyzer using safe and authorized data.
-- Document the project's results and limitations.
-
-## Planned Features
-
-The initial version of the analyzer may:
-
-- Read a selected system-log file.
-- Parse dates, times, event types, usernames, and source addresses when available.
-- Count and organize log events.
-- Detect repeated or unusual events.
-- Assign a basic severity level.
-- Export results to a CSV or text report.
-- Run from the command line.
-
-The final features may change as the project develops.
+The architecture separates **factual analysis** from **LLM interpretation**. Python is responsible for calculations and evidence processing, while the LLM is primarily responsible for explaining verified findings.
 
 ## Dataset
 
-The project will use a selected dataset from LogHub:
+The project uses OpenSSH authentication logs from the **Loghub** dataset.
 
-https://github.com/logpai/loghub
+Initial KNIME processing identified:
 
-The exact dataset and file will be documented after reviewing the available LogHub data.
+- **655,147** raw log records
+- **197,587** records containing `Failed password`
+- **182** records containing `Accepted password` or `Accepted publickey`
+- **197,769** combined authentication records
+- **1,042** unique source IP addresses
 
-Raw datasets will not be uploaded to this repository unless their usage conditions permit redistribution. Sensitive information, credentials, tokens, and unauthorized institutional data will not be included.
+The most active source IP in the processed authentication data was `59.63.188.30`, with **28,766 log records**.
 
-## Research Process
+A 50-record sample from this source IP was selected for the primary Python and LLM experiments.
 
-The project will follow these general steps:
+## Key Finding
 
-1. Review research about cybersecurity log management and log analysis.
-2. Select and document the log dataset.
-3. Study the log format and identify important fields.
-4. Create the initial Python log parser.
-5. Add detection rules.
-6. Generate analysis reports.
-7. Test the analyzer.
-8. Review the results.
-9. Revise the project based on feedback.
-10. Complete the final paper and presentation.
+Python analysis identified an important difference between **CSV log records** and the number of **authentication events represented by those records**.
 
-## Evaluation
+The selected sample contained:
 
-The analyzer will be evaluated based on:
+```text
+CSV log records:                         50
+Ordinary authentication records:         25
+Compressed repeat records:               25
+Repeated events represented:            125
+Total authentication events represented: 150
+Failed authentication events:           150
+Successful authentication events:         0
+```
 
-- Whether it correctly reads the selected log format.
-- Whether it extracts important event information.
-- How accurately it identifies unusual events.
-- The number of false positives.
-- The number of missed events.
-- Processing time.
-- Clarity of the generated report.
-- Reproducibility of the results.
+The compressed records contained syslog notation such as:
+
+```text
+message repeated 5 times: [ Failed password ... ]
+```
+
+Python therefore handles the repeat value deterministically instead of asking the LLM to estimate authentication activity.
+
+The analyzed activity involved:
+
+```text
+Source IP:              59.63.188.30
+Username:                        root
+Authentication method:       password
+Observed time span:     6 min 26 sec
+```
+
+## LLM Experiments
+
+Four stages of the LLM pipeline were evaluated:
+
+| Version | Approach                                    | Result                                                                                           |
+| ------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| V1/V2   | Raw logs + prompt engineering               | Useful interpretation, but factual and formatting problems remained                              |
+| V3      | Python-verified facts + raw logs            | Verified facts were provided, but the LLM still introduced unsupported information               |
+| V4      | Structured Python evidence only             | Hallucinations were reduced and format compliance improved                                       |
+| V4.1    | Expanded event counts + structured evidence | Best experimental result with clearer separation between records, events, and LLM interpretation |
+
+The experiments showed that **prompt engineering alone was not enough to guarantee factual accuracy**. Reliability improved when Python became responsible for factual calculations and the LLM received only structured, verified evidence.
+
+Detailed experiment results are documented in the `docs/` directory.
+
+## Installation
+
+Install the Python dependencies:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+The project currently uses:
+
+```text
+pandas==3.0.6
+ollama==0.6.3
+```
+
+Ollama must also be installed separately. After installing Ollama, download Llama 3.2:
+
+```powershell
+ollama pull llama3.2
+```
+
+## Usage
+
+Run the deterministic Python analysis:
+
+```powershell
+python src/analyze_logs.py
+```
+
+Run the latest LLM experiment:
+
+```powershell
+python src/llm_explainer_v4_1.py
+```
+
+Earlier experimental versions are preserved in `src/` so that changes in LLM behavior and reliability can be compared.
+
+The KNIME workflow is available at:
+
+```text
+knime/OpenSSH Authentication Log Analysis.knwf
+```
+
+## Project Structure
+
+```text
+Automated-Log-Analyzer/
+├── data/
+│   ├── raw/
+│   └── processed/
+├── docs/
+├── knime/
+├── output/
+├── prompts/
+├── src/
+├── tests/
+├── .gitignore
+├── README.md
+└── requirements.txt
+```
+
+Raw dataset files are kept locally and are not intended to be committed to the repository.
 
 ## Limitations
 
-The initial version may have the following limitations:
+The project currently analyzes selected authentication samples rather than sending the entire dataset to the LLM. The analyzed timestamps do not include a year, and the supplied logs alone cannot establish the identity or intent of a source IP.
 
-- It may support only one type of log.
-- It may use basic rule-based detection.
-- It may produce false-positive results.
-- It may miss some types of suspicious activity.
-- The selected dataset may not contain labels for every event.
-- The analyzer will not replace a cybersecurity professional.
+LLM-generated explanations may also vary between runs and may contain unsupported information. For this reason, LLM output should be validated against deterministic analysis and reviewed by a human analyst before supporting a security decision.
 
-## Tools
+## Documentation
 
-The project may use:
+Detailed project documentation is maintained separately:
 
-- Python.
-- Visual Studio Code.
-- GitHub Desktop.
-- GitHub.
-- A Linux environment or virtual machine.
-- Python libraries for data processing and testing.
-- Google Scholar for reference management.
+- `docs/methodology.md` — KNIME workflow, Python analysis, and event-counting methodology
+- `docs/llm_experiments.md` — V1/V2 through V4.1 testing and observed LLM behavior
+- `docs/findings.md` — Evidence, results, interpretation, and final findings
 
-## Repository Structure
+## Conclusion
 
-```text
-automated-log-analyzer/
-├── README.md
-├── .gitignore
-├── requirements.txt
-├── src/
-├── tests/
-├── data/
-├── reports/
-├── research/
-└── slides/
-```
+This project demonstrates that LLMs can assist with translating authentication evidence into readable SOC explanations, but they should not be relied upon as the primary source of factual log analysis.
 
-## Data Safety
+Testing showed that reliability improved when **KNIME and Python handled evidence processing and deterministic calculations while the LLM was limited to explaining verified evidence**.
 
-Testing will use public, synthetic, sanitized, or otherwise authorized data.
-
-This project will not test:
-
-- The College network.
-- An employer's network.
-- Unauthorized internet systems.
-- Systems without written permission.
-
-## Project Status
-
-The project is currently in the planning and setup phase.
-
-Current activities include:
-
-- Creating the GitHub repository.
-- Finalizing the project scope.
-- Selecting the LogHub dataset.
-- Reviewing research sources.
-- Planning the analyzer and testing process.
-
-## AI-Use Statement
-
-AI tools may be used for brainstorming, organization, editing, and troubleshooting. Any AI assistance will be disclosed in the related assignment or project submission.
-
-All code, sources, and written work will be reviewed and explained by the researcher.
-
-## Author
-
-Graduate student researcher in cybersecurity and digital forensics.
+The project therefore uses the LLM as an analytical support tool rather than a replacement for deterministic processing or human cybersecurity judgment.
