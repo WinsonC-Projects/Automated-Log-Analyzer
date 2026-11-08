@@ -1,0 +1,2 @@
+Open the OpenSSH Log Analyzer folder and double-click Start_OpenSSH.bat.
+The AI status section now has more comfortable spacing.
